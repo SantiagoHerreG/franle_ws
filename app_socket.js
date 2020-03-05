@@ -39,10 +39,16 @@ wss.on('connection', (socket, req) => {
     console.log(`Client ${id}: ${data}`);
 
     if (!socket.free && !match[id]) {
-      data = JSON.parse(data);
-      userProfile = data.nativeLang + "To" + data.newLang;
-      socket.userProfile = userProfile;
-      matchingProfile = data.newLang + "To" + data.nativeLang;
+      try {
+        data = JSON.parse(data);
+        userProfile = data.nativeLang + "To" + data.newLang;
+        socket.userProfile = userProfile;
+        matchingProfile = data.newLang + "To" + data.nativeLang;
+      } catch {
+        socket.close();
+        socket.userProfile = "engTospa";
+        return;
+      }
 
       if (candidates[matchingProfile].length) {
         candPool = Math.min(20, candidates[matchingProfile].length);
@@ -80,8 +86,8 @@ wss.on('connection', (socket, req) => {
     console.log(connections);
   });
 
-  socket.on('error', => {
-    socket.close(1006);
+  socket.on('error', _ => {
+    socket.close();
   });
 
   socket.on('close', _ => {
@@ -103,6 +109,6 @@ wss.on('connection', (socket, req) => {
   });
 });
 
-wss.on('error', () => {
+wss.on('error', _ => {
   return;
 });
