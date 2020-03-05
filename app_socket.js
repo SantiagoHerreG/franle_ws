@@ -46,6 +46,9 @@ wss.on('connection', (socket, req) => {
         userProfile = data.nativeLang + "To" + data.newLang;
         socket.userProfile = userProfile;
         matchingProfile = data.newLang + "To" + data.nativeLang;
+        if (!candidates[matchingProfile] || !candidates[userProfile]) {
+          throw "Invalid language code";
+        }
       } catch {
         socket.close();
         socket.userProfile = "engTospa";
