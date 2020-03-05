@@ -50,8 +50,8 @@ wss.on('connection', (socket, req) => {
           throw "Invalid language code";
         }
       } catch {
-        socket.close();
         socket.userProfile = "engTospa";
+        socket.close();
         return;
       }
 
@@ -106,9 +106,11 @@ wss.on('connection', (socket, req) => {
       delete match[pairedId];
       delete connections[pairedId]
     } else {
-      idx = candidates[socket.userProfile].indexOf(id);
-      if (idx > -1) {
-        candidates[socket.userProfile].splice(idx, 1);
+      if (socket.userProfile && candidates[socket.userProfile]) {
+        idx = candidates[socket.userProfile].indexOf(id);
+        if (idx > -1) {
+          candidates[socket.userProfile].splice(idx, 1);
+        }
       }
     }
   });
