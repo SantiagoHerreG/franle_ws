@@ -80,6 +80,10 @@ wss.on('connection', (socket, req) => {
     console.log(connections);
   });
 
+  socket.on('error', => {
+    socket.close(1006);
+  });
+
   socket.on('close', _ => {
     console.log(`Client ${id} leaving...`)
     delete connections[id];
@@ -97,4 +101,8 @@ wss.on('connection', (socket, req) => {
       }
     }
   });
+});
+
+wss.on('error', () => {
+  return;
 });
