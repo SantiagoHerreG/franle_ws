@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 const WebSocket = require('ws');
 const { v4: uuidv4 } = require('uuid');
 let connections = {};
