@@ -2,6 +2,7 @@
 
 const WebSocket = require('ws');
 const { v4: uuidv4 } = require('uuid');
+const axios = require('axios');
 let connections = {};
 let match = {};
 let candidates = {
@@ -20,14 +21,15 @@ let candidates = {
 }
 let matchingProfile = "";
 let userProfile = "";
+const port = 12345;
 
 const wss = new WebSocket.Server({
-  port: 12345,
+  port: port,
   clientTracking: true
   /* Use verifyClient for allowing the connections */
 }, () => {
   console.log('Server started...');
-  console.log('Listening on port 12345');
+  console.log('Listening on port', port);
 });
 
 wss.on('connection', (socket, req) => {
@@ -40,10 +42,11 @@ wss.on('connection', (socket, req) => {
   socket.on('message', data => {
     console.log(`Client ${id}: ${data}`);
 
-    if (!socket.free && !match[id]) {
+    data = JSON.parse(data);
+    if (!data.message) {
       try {
-        data = JSON.parse(data);
         userProfile = data.nativeLang + "To" + data.newLang;
+        socket.username = data.username;
         socket.userProfile = userProfile;
         matchingProfile = data.newLang + "To" + data.nativeLang;
         if (!candidates[matchingProfile] || !candidates[userProfile]) {
@@ -64,22 +67,43 @@ wss.on('connection', (socket, req) => {
         /*Delete the key from candidates*/
         candidates[matchingProfile].splice(keyPlace, 1);
         console.log("Matched!");
-        socket.send("Local ID and paired ID");
-        socket.send(socket.id);
-        socket.send(key);
-        socketPaired = connections[key];
-        socketPaired.send("Local ID and paired ID");
-        socketPaired.send(key);
-        socketPaired.send(socket.id);
+        usernameB = connections[key].username;
+        axios.post('http://35.190.175.59/chats', {
+          usernameA: socket.username,
+          usernameB: usernameB
+        })
+        .then((response) => {
+          console.log("Axios post chat", response);
+          socket.send(JSON.stringify(response.data));
+          socket.chatId = response.data._id;
+          connections[key].send(JSON.stringify(response.data));
+          connections[key].chatId = response.data._id;
+        })
+        .catch((error) => {
+          console.log(error);
+          socket.close();
+        });
         return;
       }
       console.log("new user and no match found");
       candidates[userProfile].push(id);
-      socket.free = true;
+      socket.used = true;
     } else if (match[id]) {
       pairedId = match[id];
       pairedSocket = connections[pairedId];
-      pairedSocket.send(data);
+      axios.post('http://35.190.175.59/message/' + socket.chatId, {
+        message: data.message,
+        username: data.username
+      })
+      .then((response) => {
+        console.log("Axios post message", response.data);
+      })
+      .catch((error) => {
+        console.log(error);
+        socket.send('Error saving the last message');
+      });
+ 
+      pairedSocket.send(JSON.stringify(data));
       console.log("data sent");
     }
     console.log("candidates", candidates);

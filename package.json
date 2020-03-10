@@ -10,6 +10,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "uuid": "^7.0.2"
+    "axios": "^0.19.2",
+    "uuid": "^7.0.2",
+    "ws": "^7.2.3"
   }
 }
