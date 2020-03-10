@@ -91,10 +91,7 @@ wss.on('connection', (socket, req) => {
     } else if (match[id]) {
       pairedId = match[id];
       pairedSocket = connections[pairedId];
-      axios.post('http://35.190.175.59/message/' + socket.chatId, {
-        message: data.message,
-        username: data.username
-      })
+      axios.post('http://35.190.175.59/message/' + socket.chatId, data)
       .then((response) => {
         console.log("Axios post message", response.data);
       })
@@ -123,6 +120,15 @@ wss.on('connection', (socket, req) => {
     console.log(`Client ${id} leaving...`)
     delete connections[id];
     if (match[id]) {
+      axios.delete('http://35.190.175.59/chats/' + socket.chatId)
+      .then((response) => {
+        console.log("Axios delete chat", socket.chatId, response.data);
+      })
+      .catch((error) => {
+        console.log("The chat could not be deleted");
+        console.log(error);
+      });
+
       pairedId = match[id];
       pairedSocket = connections[pairedId];
       pairedSocket.close(1000, "User2 has left");
