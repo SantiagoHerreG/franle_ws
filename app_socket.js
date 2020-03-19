@@ -100,7 +100,7 @@ wss.on('connection', (socket, req) => {
         socket.send('Error saving the last message');
       });
  
-      pairedSocket.send(JSON.stringify(data));
+      pairedSocket.send(data.message);
       console.log("data sent");
     }
     console.log("candidates", candidates);
